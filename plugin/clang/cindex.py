@@ -1663,12 +1663,15 @@ class CompletionChunk:
 
     @CachedProperty
     def spelling(self):
+        if self.kind.spelling:
+            return self.kind.spelling
+
         return lib.clang_getCompletionChunkText(self.cs, self.key).spelling
 
     @CachedProperty
     def kind(self):
-        res = lib.clang_getCompletionChunkKind(self.cs, self.key)
-        return completionChunkKindMap[res]
+        kind_id = lib.clang_getCompletionChunkKind(self.cs, self.key)
+        return CompletionChunkKind.from_value(kind_id)
 
     @CachedProperty
     def string(self):
@@ -1680,42 +1683,58 @@ class CompletionChunk:
           None
 
     def isKindOptional(self):
-      return self.kind == completionChunkKindMap[0]
+      return self.kind.value == 0
 
     def isKindTypedText(self):
-      return self.kind == completionChunkKindMap[1]
+      return self.kind.value == 1
 
     def isKindPlaceHolder(self):
-      return self.kind == completionChunkKindMap[3]
+      return self.kind.value == 3
 
     def isKindInformative(self):
-      return self.kind == completionChunkKindMap[4]
+      return self.kind.value == 4
 
     def isKindResultType(self):
-      return self.kind == completionChunkKindMap[15]
+      return self.kind.value == 15
 
-completionChunkKindMap = {
-            0: CompletionChunk.Kind("Optional"),
-            1: CompletionChunk.Kind("TypedText"),
-            2: CompletionChunk.Kind("Text"),
-            3: CompletionChunk.Kind("Placeholder"),
-            4: CompletionChunk.Kind("Informative"),
-            5: CompletionChunk.Kind("CurrentParameter"),
-            6: CompletionChunk.Kind("LeftParen"),
-            7: CompletionChunk.Kind("RightParen"),
-            8: CompletionChunk.Kind("LeftBracket"),
-            9: CompletionChunk.Kind("RightBracket"),
-            10: CompletionChunk.Kind("LeftBrace"),
-            11: CompletionChunk.Kind("RightBrace"),
-            12: CompletionChunk.Kind("LeftAngle"),
-            13: CompletionChunk.Kind("RightAngle"),
-            14: CompletionChunk.Kind("Comma"),
-            15: CompletionChunk.Kind("ResultType"),
-            16: CompletionChunk.Kind("Colon"),
-            17: CompletionChunk.Kind("SemiColon"),
-            18: CompletionChunk.Kind("Equal"),
-            19: CompletionChunk.Kind("HorizontalSpace"),
-            20: CompletionChunk.Kind("VerticalSpace")}
+class CompletionChunkKind(object):
+    """Describes a specific type of a Token."""
+
+    _value_map = {} # int -> CompletionChunkKind
+
+    def __init__(self, value, name, spelling):
+        """Create a new TokenKind instance from a numeric value and a name."""
+        self.value = value
+        self.name = name
+        self.spelling = spelling
+
+    def __repr__(self):
+        return 'CompletionChunkKind.%s' % (self.name,)
+
+    @staticmethod
+    def from_value(value):
+        """Obtain a registered CompletionChunkKind instance from its value."""
+        result = CompletionChunkKind._value_map.get(value, None)
+
+        if result is None:
+            raise ValueError('Unknown CompletionChunkKind: %d' % value)
+
+        return result
+
+    @staticmethod
+    def register(value, name, spelling):
+        """Register a new CompletionChunkKind enumeration.
+
+        This should only be called at module load time by code within this
+        package.
+        """
+        if value in CompletionChunkKind._value_map:
+            raise ValueError('CompletionChunkKind already registered: %d' % \
+                             value)
+
+        kind = CompletionChunkKind(value, name, spelling)
+        CompletionChunkKind._value_map[value] = kind
+        setattr(CompletionChunkKind, name, kind)
 
 class CompletionString(ClangObject):
     class Availability:
@@ -2851,6 +2870,9 @@ register_functions(lib)
 def register_enumerations():
     for name, value in clang.enumerations.TokenKinds:
         TokenKind.register(value, name)
+
+    for name, value, spelling in clang.enumerations.CompletionChunkKinds:
+        CompletionChunkKind.register(value, name, spelling)
 
 register_enumerations()
 

@@ -31,4 +31,30 @@ TokenKinds = [
     ('COMMENT', 4),
 ]
 
-__all__ = ['TokenKinds']
+# The different kinds of completion tokens, as well as an optional spelling, in
+# case the spelling of that token kind is known in advance.
+CompletionChunkKinds = [
+    ('Optional', 0, None),
+    ('TypedText', 1, None),
+    ('Text', 2, None),
+    ('Placeholder', 3, None),
+    ('Informative', 4, None),
+    ('CurrentParameter', 5, None),
+    ('LeftParen', 6, '('),
+    ('RightParen', 7, ')'),
+    ('LeftBracket', 8, '['),
+    ('RightBracket', 9, ']'),
+    ('LeftBrace', 10, '{'),
+    ('RightBrace', 11, '}'),
+    ('LeftAngle', 12, '<'),
+    ('RightAngle', 13, '>'),
+    ('Comma', 14, ', '), # The spelling of a comma, is a comma plus a space.
+    ('ResultType', 15, None),
+    ('Colon', 16, ':'),
+    ('SemiColon', 17, ';'),
+    ('Equal', 18, '='),
+    ('HorizontalSpace', 19, None),
+    ('VerticalSpace', 20, None),
+]
+
+__all__ = ['TokenKinds', 'CompletionChunkKinds']
