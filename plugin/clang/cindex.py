@@ -1682,21 +1682,6 @@ class CompletionChunk:
         else:
           None
 
-    def isKindOptional(self):
-      return self.kind.value == 0
-
-    def isKindTypedText(self):
-      return self.kind.value == 1
-
-    def isKindPlaceHolder(self):
-      return self.kind.value == 3
-
-    def isKindInformative(self):
-      return self.kind.value == 4
-
-    def isKindResultType(self):
-      return self.kind.value == 15
-
 class CompletionChunkKind(object):
     """Describes a specific type of a Token."""
 
@@ -1735,6 +1720,21 @@ class CompletionChunkKind(object):
         kind = CompletionChunkKind(value, name, spelling)
         CompletionChunkKind._value_map[value] = kind
         setattr(CompletionChunkKind, name, kind)
+
+    def isOptional(self):
+        return self.value == 0
+
+    def isTypedText(self):
+        return self.value == 1
+
+    def isPlaceHolder(self):
+        return self.value == 3
+
+    def isInformative(self):
+        return self.value == 4
+
+    def isResultType(self):
+        return self.value == 15
 
 class CompletionString(ClangObject):
     class Availability:

@@ -223,25 +223,26 @@ def formatResult(result):
 
   returnValue = None
   abbr = ""
-  chunks = filter(lambda x: not x.isKindInformative(), result.string)
+  chunks = filter(lambda x: not x.kind.isInformative(), result.string)
 
   args_pos = []
   cur_pos = 0
   word = ""
 
   for chunk in chunks:
+    kind = chunk.kind
 
-    if chunk.isKindResultType():
+    if kind.isResultType():
       returnValue = chunk
       continue
 
     chunk_spelling = chunk.spelling
 
-    if chunk.isKindTypedText():
+    if kind.isTypedText():
       abbr = chunk_spelling
 
     chunk_len = len(chunk_spelling)
-    if chunk.isKindPlaceHolder():
+    if kind.isPlaceHolder():
       args_pos += [[ cur_pos, cur_pos + chunk_len ]]
     cur_pos += chunk_len
     word += chunk_spelling
