@@ -1731,8 +1731,12 @@ class CompletionString(ClangObject):
     def __len__(self):
         return lib.clang_getNumCompletionChunks(self.obj)
 
+    @CachedProperty
+    def num_chunks(self):
+        return lib.clang_getNumCompletionChunks(self.obj)
+
     def __getitem__(self, key):
-        if len(self) <= key:
+        if self.num_chunks <= key:
             raise IndexError
         return CompletionChunk(self.obj, key)
 
