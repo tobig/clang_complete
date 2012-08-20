@@ -223,14 +223,15 @@ def formatResult(result):
 
   returnValue = None
   abbr = ""
-  chunks = filter(lambda x: not x.kind.isInformative(), result.string)
-
   args_pos = []
   cur_pos = 0
   word = ""
 
-  for chunk in chunks:
+  for chunk in result.string:
     kind = chunk.kind
+
+    if kind.isInformative():
+      continue;
 
     if kind.isResultType():
       returnValue = chunk
