@@ -26,14 +26,24 @@ def getBuiltinHeaderPath(library_path):
   path = library_path + "/../lib/clang"
   try:
     files = os.listdir(path)
+    files = sorted(files)
+    path = path + "/" + files[-1] + "/include/"
+    arg = "-I" + path
+    if canFindBuiltinHeaders(index, [arg]):
+      return path
   except:
-    return None
+    pass
 
-  files = sorted(files)
-  path = path + "/" + files[-1] + "/include/"
-  arg = "-I" + path
-  if canFindBuiltinHeaders(index, [arg]):
-    return path
+  knownPaths = [
+    "/usr/lib/llvm", # Gentoo
+    "/usr/lib64/clang/include" # OpenSuse 64 bit
+  ] 
+  
+  for path in knownPaths:
+    arg = "-I" + path
+    if canFindBuiltinHeaders(index, [arg]):
+        return path
+
   return None
 
 def initClangComplete(clang_complete_flags, clang_compilation_database, \
