@@ -349,21 +349,22 @@ def formatResult(result):
   word = ""
 
   for chunk in result.string:
+    kindNumber = chunk.kindNumber
 
-    if chunk.isKindInformative():
+    if kindNumber == 4: # chunk.isKindInformative():
       continue
 
-    if chunk.isKindResultType():
+    if kindNumber == 15: # chunk.isKindResultType():
       returnValue = chunk
       continue
 
     chunk_spelling = chunk.spelling
 
-    if chunk.isKindTypedText():
+    if kindNumber == 1: # chunk.isKindTypedText():
       abbr = chunk_spelling
 
     chunk_len = len(chunk_spelling)
-    if chunk.isKindPlaceHolder():
+    if kindNumber == 3 : # chunk.isKindPlaceHolder():
       args_pos += [[ cur_pos, cur_pos + chunk_len ]]
     cur_pos += chunk_len
     word += chunk_spelling
