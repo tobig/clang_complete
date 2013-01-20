@@ -1693,15 +1693,15 @@ class CompletionChunk:
 
     @CachedProperty
     def spelling(self):
-        if self.__kindNumber in SpellingCache:
-                return SpellingCache[self.__kindNumber]
+        if self.kindNumber in SpellingCache:
+                return SpellingCache[self.kindNumber]
         return conf.lib.clang_getCompletionChunkText(self.cs, self.key).spelling
 
     # We do not use @CachedProperty here, as the manual implementation is
     # apparently still significantly faster. Please profile carefully if you
     # would like to add CachedProperty back.
     @property
-    def __kindNumber(self):
+    def kindNumber(self):
         if self.__kindNumberCache == -1:
             self.__kindNumberCache = \
                 conf.lib.clang_getCompletionChunkKind(self.cs, self.key)
@@ -1709,7 +1709,7 @@ class CompletionChunk:
 
     @CachedProperty
     def kind(self):
-        return completionChunkKindMap[self.__kindNumber]
+        return completionChunkKindMap[self.kindNumber]
 
     @CachedProperty
     def string(self):
@@ -1722,19 +1722,19 @@ class CompletionChunk:
           None
 
     def isKindOptional(self):
-      return self.__kindNumber == 0
+      return self.kindNumber == 0
 
     def isKindTypedText(self):
-      return self.__kindNumber == 1
+      return self.kindNumber == 1
 
     def isKindPlaceHolder(self):
-      return self.__kindNumber == 3
+      return self.kindNumber == 3
 
     def isKindInformative(self):
-      return self.__kindNumber == 4
+      return self.kindNumber == 4
 
     def isKindResultType(self):
-      return self.__kindNumber == 15
+      return self.kindNumber == 15
 
 completionChunkKindMap = {
             0: CompletionChunk.Kind("Optional"),
