@@ -340,7 +340,7 @@ def getCurrentCompletionResults(line, column, args, currentFile, fileName,
   timer.registerEvent("Code Complete")
   return cr
 
-def formatResult(result):
+def formatResultPlain(result):
   completion = dict()
   returnValue = None
   abbr = ""
@@ -378,6 +378,58 @@ def formatResult(result):
   completion['abbr'] = abbr
   completion['menu'] = menu
   completion['info'] = word
+  completion['args_pos'] = args_pos
+  completion['dup'] = 1
+
+  # Replace the number that represents a specific kind with a better
+  # textual representation.
+  completion['kind'] = kinds[result.cursorKind]
+
+  return completion
+
+def formatResultClangSnippets(result, trailingPlaceholder):
+  completion = dict()
+  returnValue = None
+  abbr = ""
+  args_pos = []
+  cur_pos = 0
+  word = ""
+  info = ""
+
+  for chunk in result.string:
+    kindNumber = chunk.kindNumber
+
+    if kindNumber == 4: # chunk.isKindInformative():
+      continue
+
+    if kindNumber == 15: # chunk.isKindResultType():
+      returnValue = chunk
+      continue
+
+    chunk_spelling = chunk.spelling
+
+    if kindNumber == 1: # chunk.isKindTypedText():
+      abbr = chunk_spelling
+
+    if kindNumber == 3 : # chunk.isKindPlaceHolder():
+      word += "<#" + chunk_spelling + "#>"
+    else:
+      word += chunk_spelling
+
+    info += chunk_spelling
+
+  menu = info
+
+  if returnValue:
+    menu = returnValue.spelling + " " + menu
+
+  if trailingPlaceholder:
+    word += "<##>"
+
+  completion['word'] = word
+  completion['abbr'] = abbr
+  completion['menu'] = menu
+  completion['info'] = info
   completion['args_pos'] = args_pos
   completion['dup'] = 1
 
@@ -428,11 +480,20 @@ def WarmupCache():
                      params, timer)
   t.start()
 
+def formatResultsPlain(results):
+    return map(formatResultPlain, results)
+
+def formatResultsClangSnippets(results, trailingPlaceholder):
+    f = lambda x: formatResultClangSnippets(x, trailingPlaceholder)
+    return map(f, results)
 
 def getCurrentCompletions(base):
   global debug
   debug = int(vim.eval("g:clang_debug")) == 1
   sorting = vim.eval("g:clang_sort_algo")
+  snippetsEnabled = int(vim.eval("g:clang_snippets")) == 1
+  snippetsEngine = vim.eval("g:clang_snippets_engine")
+  snippetsTrailingPlaceholder = int(vim.eval("g:clang_trailing_placeholder")) == 1
   line = int(vim.eval("line('.')"))
   column = int(vim.eval("b:col"))
   params = getCompileParams(vim.current.buffer.name)
@@ -473,10 +534,15 @@ def getCurrentCompletions(base):
 
   timer.registerEvent("Sort")
 
-  result = map(formatResult, results)
+  if snippetsEnabled and snippetsEngine == "clang_complete":
+    result = formatResultsClangSnippets(results, snippetsTrailingPlaceholder)
+    snippetsEmbedded = 1
+  else:
+    result = formatResultsPlain(results)
+    snippetsEmbedded = 0
 
   timer.registerEvent("Format")
-  return (str(result), timer)
+  return (str(result), timer, snippetsEmbedded)
 
 def getAbbr(strings):
   for chunks in strings:

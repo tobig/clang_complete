@@ -593,14 +593,16 @@ function! ClangComplete(findstart, base)
     endif
 
     if g:clang_use_library == 1
-      python completions, timer = getCurrentCompletions(vim.eval('a:base'))
+      python completions, timer, embeddedSnippets = getCurrentCompletions(vim.eval('a:base'))
       python vim.command('let l:res = ' + completions)
+      python vim.command('let l:embedded_snippets = ' + str(embeddedSnippets))
       python timer.registerEvent("Load into vimscript")
     else
+      let l:embedded_snippets = 0
       let l:res = s:ClangCompleteBinary(a:base)
     endif
 
-    if g:clang_snippets == 1
+    if g:clang_snippets == 1 && !l:embedded_snippets
       for item in l:res
         let item['word'] = b:AddSnip(item['info'], item['args_pos'])
       endfor
