@@ -349,6 +349,11 @@ def getCurrentCompletionResults(line, column, args, currentFile, fileName,
   if tu == None:
     return None
 
+  for diag in tu.diagnostics:
+    if diag.severity == diag.Fatal:
+      return None
+  timer.registerEvent("Find fatal diagnostics")
+
   cr = tu.codeComplete(fileName, line, column, [currentFile],
       complete_flags)
   timer.registerEvent("Code Complete")
