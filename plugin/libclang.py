@@ -10,6 +10,10 @@ import os
 # happens especially if libclang is not installed at a standard location. This
 # function checks if the builtin includes are available.
 def canFindBuiltinHeaders(index, args = []):
+  debug = int(vim.eval("g:clang_debug")) == 1
+  if debug:
+    print "Checking for builtins with: echo '#include \"stddef.h\"' |",
+    print " clang - -E -nobuiltininc " + " ".join(args)
   flags = 0
   currentFile = ("test.c", '#include "stddef.h"')
   tu = index.parse("test.c", args, [currentFile], flags)
@@ -22,6 +26,11 @@ def canFindBuiltinHeaders(index, args = []):
 # for all manual installations (the ones where the builtin header path problem
 # is very common) as well as a set of very common distributions.
 def getBuiltinHeaderPath(library_path):
+  debug = int(vim.eval("g:clang_debug")) == 1
+
+  if debug:
+    print "Searching path for builtin includes"
+
   knownPaths = [
           library_path + "/../lib/clang",  # default value
           library_path + "/../clang",      # gentoo
@@ -31,13 +40,20 @@ def getBuiltinHeaderPath(library_path):
   ]
 
   for path in knownPaths:
+    if debug:
+      print "Checking path: " + path
     try:
       files = os.listdir(path)
+      if debug:
+        print str(files)
       if len(files) >= 1:
         files = sorted(files)
         subDir = files[-1]
       else:
         subDir = '.'
+
+      if debug:
+        print "SubDir: " + subDir
       path = path + "/" + subDir + "/include/"
       arg = "-I" + path
       if canFindBuiltinHeaders(index, [arg]):
