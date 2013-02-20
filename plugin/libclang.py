@@ -34,6 +34,10 @@ def getBuiltinHeaderPath(library_path):
   if debug:
     print "Searching path for builtin includes"
 
+    import ctypes.util
+    print "LIBRARY: " + str(ctypes.util.find_library("libclang.dll"))
+
+
   knownPaths = [
           library_path + "/../lib/clang",  # default value
           library_path + "/../clang",      # gentoo
