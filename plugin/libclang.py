@@ -17,6 +17,9 @@ def canFindBuiltinHeaders(index, args = []):
   flags = 0
   currentFile = ("test.c", '#include "stddef.h"')
   tu = index.parse("test.c", args, [currentFile], flags)
+
+  if debug:
+    print "Search result: " + str(len(tu.diagnostics) == 0)
   return len(tu.diagnostics) == 0
 
 # Derive path to clang builtin headers.
