@@ -178,6 +178,7 @@ function! s:ClangCompleteInit()
       au CursorHold,CursorHoldI <buffer> call <SID>DoPeriodicQuickFix()
     augroup end
   endif
+  au CursorMovedI,CursorMoved <buffer> call <SID>CursorMoved()
 
   setlocal completefunc=ClangComplete
   setlocal omnifunc=ClangComplete
@@ -353,6 +354,7 @@ endfunction
 let b:col = 0
 
 function! ClangComplete(findstart, base)
+  let s:active = 1
   if a:findstart
     let l:line = getline('.')
     let l:start = col('.') - 1
@@ -482,6 +484,17 @@ function! s:CompleteColon()
     return ':'
   endif
   return ':' . s:LaunchCompletion()
+endfunction
+
+let s:position = col('.')
+let s:active = 0
+
+function! s:CursorMoved()
+  
+  if s:position != col('.') && s:active == 1
+    call feedkeys( "\<C-X>\<C-U>\<C-P>", 'n' )
+    let s:position = col('.')
+  endif
 endfunction
 
 function! s:GotoDeclaration()
